@@ -290,3 +290,5 @@ __pycache__/
 
 Properties/PublishProfiles/*
 Properties/ServiceDependencies/*
+
+*Deploy.json
