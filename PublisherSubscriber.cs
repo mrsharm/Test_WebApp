@@ -27,7 +27,7 @@
         public static Publisher CreatePublishers()
         {
             var publisher = new Publisher();
-            for (int i = 0; i < 2_000; i++)
+            for (int i = 0; i < 2_100; i++)
             {
                 var subscriber = new Subscriber();
                 subscriber.Subscribe(publisher);

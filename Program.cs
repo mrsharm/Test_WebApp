@@ -24,13 +24,9 @@ namespace WebApp_AppService
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
             app.MapControllers();
 
-            // Errors out.
             Subscriber.CreatePublishers();
 
             app.Run();
