@@ -27,7 +27,8 @@ namespace WebApp_AppService
             app.UseAuthorization();
             app.MapControllers();
 
-            Subscriber.CreatePublishers();
+            // Removed Subscriber.CreatePublishers() to prevent startup memory leak
+            // This can be called via the /api/app/appinvoke endpoint if needed
 
             app.Run();
         }

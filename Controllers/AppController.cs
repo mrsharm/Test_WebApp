@@ -45,6 +45,11 @@ namespace WebApp_AppService.Controllers
             {
                 cache.Add(c);
             }
+
+            public void Clear()
+            {
+                cache.Clear();
+            }
         }
 
         class Processor
@@ -54,6 +59,11 @@ namespace WebApp_AppService.Controllers
             public void ProcessTransaction(Customer customer)
             {
                 cache.AddCustomer(customer);
+            }
+
+            public void ClearCache()
+            {
+                cache.Clear();
             }
         }
 
@@ -67,6 +77,9 @@ namespace WebApp_AppService.Controllers
                 p.ProcessTransaction(new Customer(Guid.NewGuid().ToString()));
             }
 
+            // Clear the cache to prevent memory accumulation
+            p.ClearCache();
+
             return "success:memleak";
         }
 
@@ -77,18 +90,19 @@ namespace WebApp_AppService.Controllers
             return "Hello World!";
         }
 
-        private static readonly List<byte[]> memoryHog = new();
-
         [HttpGet]
         [Route("crash")]
         public ActionResult<string> crash()
         {
+            // Use local variable instead of static to allow garbage collection
+            var localMemoryHog = new List<byte[]>();
             double bytesSize = 0;
             while (true || bytesSize < 1_000_000)
             {
                 bytesSize += 10 * 1024 * 1024; // 10MB
-                memoryHog.Add(new byte[10 * 1024 * 1024]); // Allocate 1MB
+                localMemoryHog.Add(new byte[10 * 1024 * 1024]); // Allocate 10MB (comment was incorrect)
             }
+            // localMemoryHog will be eligible for GC when method exits
 
             return "success:oomd";
         }
