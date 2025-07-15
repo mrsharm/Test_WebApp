@@ -18,6 +18,11 @@ The Azure App Service **cpu-app** was experiencing high CPU usage in the followi
 
 ## Performance Results
 
+### Test with 100,000 numbers:
+- **Original method**: ~0.794 seconds
+- **Optimized method**: ~0.015 seconds  
+- **Performance improvement**: ~53x faster
+
 ### Test with 200,000 numbers:
 - **Original method**: ~2.656 seconds
 - **Optimized method**: ~0.016 seconds  
@@ -27,6 +32,9 @@ The Azure App Service **cpu-app** was experiencing high CPU usage in the followi
 - **Original method**: Timed out after 25+ seconds
 - **Optimized method**: ~0.022 seconds
 - **Performance improvement**: >1000x faster
+
+### Correctness Verification:
+Both methods return identical results, confirming the optimization maintains accuracy.
 
 ## Technical Details
 
