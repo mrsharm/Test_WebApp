@@ -51,6 +51,13 @@ namespace WebApp_AppService.Controllers
             {
                 cache.Add(c);
             }
+
+            public void Clear()
+            {
+                cache.Clear();
+            }
+
+            public int Count => cache.Count;
         }
 
         class Processor
@@ -61,6 +68,13 @@ namespace WebApp_AppService.Controllers
             {
                 cache.AddCustomer(customer);
             }
+
+            public void ClearCache()
+            {
+                cache.Clear();
+            }
+
+            public int CacheCount => cache.Count;
         }
 
         [HttpGet]
@@ -72,6 +86,9 @@ namespace WebApp_AppService.Controllers
             {
                 p.ProcessTransaction(new Customer(Guid.NewGuid().ToString()));
             }
+
+            // Clear cache after processing to prevent indefinite accumulation
+            p.ClearCache();
 
             return "success:memleak";
         }
@@ -105,10 +122,10 @@ namespace WebApp_AppService.Controllers
         public ActionResult<string> crash()
         {
             double bytesSize = 0;
-            while (true || bytesSize < 1_000_000)
+            while (bytesSize < 1_000_000)
             {
                 bytesSize += 10 * 1024 * 1024; // 10MB
-                memoryHog.Add(new byte[10 * 1024 * 1024]); // Allocate 1MB
+                memoryHog.Add(new byte[10 * 1024 * 1024]); // Allocate 10MB
             }
 
             return "success:oomd";
