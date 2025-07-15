@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
 namespace WebApp_AppService.Controllers
@@ -7,6 +8,11 @@ namespace WebApp_AppService.Controllers
     [ApiController]
     public class AppController : ControllerBase
     {
+        private readonly IConfiguration app;
+        public AppController(IConfiguration configuration)
+        {
+            app = configuration;
+        }
 
         [HttpGet]
         [Route("appinvoke")]
@@ -71,10 +77,25 @@ namespace WebApp_AppService.Controllers
         }
 
         [HttpGet]
-        [Route("sayhello")]
+        [Route("test")]
         public ActionResult<string> sayhello()
         {
-            return "Hello World!";
+            var connectionString = app.GetConnectionString("StorageAccount");
+            if (string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException("Storage account connection string is not configured.");
+            }
+
+            try
+            {
+                var blobServiceClient = new BlobServiceClient(connectionString);
+                var accountInfo = blobServiceClient.GetAccountInfo();
+                return "Hello, the storage account is connected successfully! Account Name: "; 
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to connect to storage account: {ex.Message}", ex);
+            }
         }
 
         private static readonly List<byte[]> memoryHog = new();

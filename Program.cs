@@ -26,23 +26,6 @@ namespace WebApp_AppService
             app.UseAuthorization();
             app.MapControllers();
 
-            var connectionString = app.Configuration.GetConnectionString("StorageAccount");
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                throw new InvalidOperationException("Storage account connection string is not configured.");
-            }
-
-            try
-            {
-                var blobServiceClient = new BlobServiceClient(connectionString);
-                var accountInfo = blobServiceClient.GetAccountInfo();
-                Console.WriteLine("Successfully connected to storage account.");
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Failed to connect to storage account: {ex.Message}", ex);
-            }
-
             app.Run();
         }
     }

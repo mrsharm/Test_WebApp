@@ -2,8 +2,8 @@
 // Deploys an Azure App Service Plan and a Web App
 
 param location string = resourceGroup().location
-param appServicePlanName string = 'webapp-service-plan'
-param webAppName string = 'my-dotnet-webapp'
+param appServicePlanName string = 'cpu-app20250714124552Plan'
+param webAppName string = 'test_webapp'
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: appServicePlanName
