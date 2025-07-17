@@ -292,3 +292,6 @@ Properties/PublishProfiles/*
 Properties/ServiceDependencies/*
 
 *Deploy.json
+
+# Generated ARM templates from Bicep
+main.json
