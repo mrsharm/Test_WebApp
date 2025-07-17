@@ -77,6 +77,64 @@ namespace WebApp_AppService.Controllers
         }
 
         [HttpGet]
+        [Route("work")]
+        public async Task<ActionResult<string>> doWork(int? durationInSeconds)
+        {
+            var seconds = durationInSeconds ?? 10;
+            var start = DateTime.UtcNow;
+            var endTime = start.AddSeconds(seconds);
+
+            double result = 0;
+            long iterations = 0;
+            int threadCount = (Environment.ProcessorCount > 2) ? (int)Math.Ceiling((decimal)Environment.ProcessorCount / 2) : 1;
+            object lockObj = new object();
+
+            var tasks = new List<Task>();
+
+            for (int i = 0; i < threadCount; i++)
+            {
+                tasks.Add(Task.Run(() =>
+                {
+                    double localResult = 0;
+                    long localIterations = 0;
+
+                    while (DateTime.UtcNow < endTime)
+                    {
+                        // More expensive operations
+                        localResult += Math.Pow(Math.Sin(localIterations), 2) + Math.Cos(localIterations);
+                        localResult += Math.Sqrt(Math.Abs(localResult));
+                        localResult += Math.Log(Math.Abs(localResult) + 1);
+
+                        // Prime calculation (expensive)
+                        bool isPrime = IsPrime(localIterations % 10000 + 2);
+                        if (isPrime) localResult += 1;
+
+                        localIterations++;
+                    }
+
+                    lock (lockObj)
+                    {
+                        result += localResult;
+                        iterations += localIterations;
+                    }
+                }));
+            }
+
+            bool IsPrime(long number)
+            {
+                if (number < 2) return false;
+                for (long i = 2; i <= Math.Sqrt(number); i++)
+                {
+                    if (number % i == 0) return false;
+                }
+                return true;
+            }
+
+            await Task.WhenAll(tasks);
+            return $"High CPU task completed! Iterations: {iterations:N0}, Result: {result:F2} for Duration: {durationInSeconds}";
+        }
+
+        [HttpGet]
         [Route("test")]
         public ActionResult<string> sayhello()
         {
