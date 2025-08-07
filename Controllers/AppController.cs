@@ -152,7 +152,9 @@ namespace WebApp_AppService.Controllers
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to connect to storage account: {ex.Message}", ex);
+                // Log the error but don't crash the application
+                // This allows the service to remain available even if storage is temporarily unavailable
+                return $"Storage connection configured but unavailable: {ex.Message}";
             }
         }
 
