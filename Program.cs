@@ -1,4 +1,5 @@
 using Azure.Storage.Blobs;
+using WebApp_AppService.Configuration;
 
 namespace WebApp_AppService
 {
@@ -12,6 +13,10 @@ namespace WebApp_AppService
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            // Register configuration
+            builder.Services.Configure<CpuWorkloadSettings>(
+                builder.Configuration.GetSection(CpuWorkloadSettings.SectionName));
 
             var app = builder.Build();
 
