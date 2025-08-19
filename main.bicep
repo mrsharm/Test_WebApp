@@ -3,14 +3,14 @@
 
 param location string = resourceGroup().location
 param appServicePlanName string = 'cpu-app20250714124552Plan'
-param webAppName string = 'test_webapp'
+param webAppName string = 'cpu-app'
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: appServicePlanName
   location: location
   sku: {
-    name: 'F1'
-    tier: 'Free'
+    name: 'S3'
+    tier: 'Standard'
   }
   kind: 'app'
 }
