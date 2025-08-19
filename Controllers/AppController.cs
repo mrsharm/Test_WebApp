@@ -9,15 +9,20 @@ namespace WebApp_AppService.Controllers
     public class AppController : ControllerBase
     {
         private readonly IConfiguration app;
-        public AppController(IConfiguration configuration)
+        private readonly ILogger<AppController> _logger;
+        
+        public AppController(IConfiguration configuration, ILogger<AppController> logger)
         {
             app = configuration;
+            _logger = logger;
         }
 
         [HttpGet]
         [Route("appinvoke")]
         public ActionResult<string> appinvoke()
         {
+            _logger.LogWarning("AppInvoke endpoint called - creates memory leak with 2100 subscribers");
+            
             try
             {
                 Subscriber.CreatePublishers();
@@ -25,6 +30,7 @@ namespace WebApp_AppService.Controllers
 
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error in AppInvoke endpoint");
                 Debug.WriteLine(ex.ToString());
                 return "Error: " + ex.Message;
             }
@@ -67,6 +73,8 @@ namespace WebApp_AppService.Controllers
         [Route("memleak/{kb}")]
         public ActionResult<string> memleak(int kb)
         {
+            _logger.LogWarning("MemLeak endpoint called with {KB}KB - creates memory leak via static processor", kb);
+            
             int it = (kb * 1000) / 100;
             for (int i = 0; i < it; i++)
             {
@@ -81,6 +89,8 @@ namespace WebApp_AppService.Controllers
         public async Task<ActionResult<string>> doWork(int? durationInSeconds)
         {
             var seconds = durationInSeconds ?? 10;
+            _logger.LogWarning("High CPU work endpoint called for {Seconds} seconds - will consume significant CPU", seconds);
+            
             var start = DateTime.UtcNow;
             var endTime = start.AddSeconds(seconds);
 
@@ -131,7 +141,8 @@ namespace WebApp_AppService.Controllers
             }
 
             await Task.WhenAll(tasks);
-            return $"High CPU task completed! Iterations: {iterations:N0}, Result: {result:F2} for Duration: {durationInSeconds}";
+            _logger.LogInformation("High CPU work completed: {Iterations} iterations, {ThreadCount} threads", iterations, threadCount);
+            return $"High CPU task completed! Iterations: {iterations:N0}, Result: {result:F2} for Duration: {seconds}";
         }
 
         [HttpGet]
@@ -159,17 +170,123 @@ namespace WebApp_AppService.Controllers
         private static readonly List<byte[]> memoryHog = new();
 
         [HttpGet]
+        [Route("diagnostics")]
+        public ActionResult<object> diagnostics()
+        {
+            var process = System.Diagnostics.Process.GetCurrentProcess();
+            var gcInfo = GC.GetTotalMemory(false);
+            
+            return new
+            {
+                ProcessInfo = new
+                {
+                    ProcessId = process.Id,
+                    ProcessName = process.ProcessName,
+                    StartTime = process.StartTime,
+                    WorkingSet64 = $"{process.WorkingSet64 / (1024 * 1024):F1}MB",
+                    PrivateMemorySize64 = $"{process.PrivateMemorySize64 / (1024 * 1024):F1}MB"
+                },
+                MemoryInfo = new
+                {
+                    GCTotalMemory = $"{gcInfo / (1024 * 1024):F1}MB",
+                    Gen0Collections = GC.CollectionCount(0),
+                    Gen1Collections = GC.CollectionCount(1),  
+                    Gen2Collections = GC.CollectionCount(2),
+                    MemoryHogCount = memoryHog.Count,
+                    MemoryHogSize = $"{memoryHog.Count * 10:F1}MB"
+                },
+                SystemInfo = new
+                {
+                    ProcessorCount = Environment.ProcessorCount,
+                    MachineName = Environment.MachineName,
+                    OSVersion = Environment.OSVersion.ToString(),
+                    UpTime = DateTime.UtcNow - process.StartTime
+                }
+            };
+        }
+
+        [HttpGet]
+        [Route("health")]
+        public ActionResult<object> health()
+        {
+            var process = System.Diagnostics.Process.GetCurrentProcess();
+            var workingSetMB = process.WorkingSet64 / (1024 * 1024);
+            var gcMemoryMB = GC.GetTotalMemory(false) / (1024 * 1024);
+            
+            var status = "healthy";
+            var warnings = new List<string>();
+            
+            if (workingSetMB > 500)
+            {
+                status = "warning";
+                warnings.Add($"High memory usage: {workingSetMB:F1}MB");
+            }
+            
+            if (memoryHog.Count > 50)
+            {
+                status = "warning";
+                warnings.Add($"Memory hog active: {memoryHog.Count} allocations");
+            }
+
+            return new
+            {
+                Status = status,
+                Timestamp = DateTime.UtcNow,
+                Warnings = warnings,
+                Metrics = new
+                {
+                    WorkingSetMB = $"{workingSetMB:F1}MB",
+                    GCMemoryMB = $"{gcMemoryMB:F1}MB"
+                }
+            };
+        }
+
+        [HttpGet]
         [Route("crash")]
         public ActionResult<string> crash()
         {
+            _logger.LogWarning("Crash endpoint called - will allocate significant memory");
+            
             double bytesSize = 0;
-            while (true || bytesSize < 1_000_000)
+            int maxAllocations = 100; // Limit to prevent infinite loop
+            int allocations = 0;
+            
+            while (bytesSize < 1_000_000_000 && allocations < maxAllocations) // 1GB limit and allocation limit
             {
                 bytesSize += 10 * 1024 * 1024; // 10MB
-                memoryHog.Add(new byte[10 * 1024 * 1024]); // Allocate 1MB
+                memoryHog.Add(new byte[10 * 1024 * 1024]); // Allocate 10MB
+                allocations++;
             }
 
-            return "success:oomd";
+            _logger.LogWarning("Crash endpoint completed: {Allocations} allocations, {SizeMB}MB", allocations, bytesSize / (1024 * 1024));
+            return $"success:allocated {allocations} chunks, total size: {bytesSize / (1024 * 1024):F1}MB";
+        }
+
+        [HttpPost]
+        [Route("cleanup")]
+        public ActionResult<object> cleanup()
+        {
+            _logger.LogInformation("Cleanup endpoint called - releasing memory hog allocations");
+            
+            var beforeCount = memoryHog.Count;
+            var beforeMemoryMB = GC.GetTotalMemory(false) / (1024 * 1024);
+            
+            memoryHog.Clear();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            
+            var afterMemoryMB = GC.GetTotalMemory(false) / (1024 * 1024);
+            
+            return new
+            {
+                Status = "success",
+                Timestamp = DateTime.UtcNow,
+                ClearedAllocations = beforeCount,
+                MemoryBefore = $"{beforeMemoryMB}MB",
+                MemoryAfter = $"{afterMemoryMB}MB",
+                MemoryFreed = $"{Math.Max(0, beforeMemoryMB - afterMemoryMB)}MB"
+            };
         }
     }
 }
