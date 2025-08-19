@@ -163,10 +163,11 @@ namespace WebApp_AppService.Controllers
         public ActionResult<string> crash()
         {
             double bytesSize = 0;
-            while (true || bytesSize < 1_000_000)
+            // Fixed: Changed from infinite loop to proper condition
+            while (bytesSize < 1_000_000_000) // 1GB limit to prevent infinite memory allocation
             {
                 bytesSize += 10 * 1024 * 1024; // 10MB
-                memoryHog.Add(new byte[10 * 1024 * 1024]); // Allocate 1MB
+                memoryHog.Add(new byte[10 * 1024 * 1024]); // Allocate 10MB
             }
 
             return "success:oomd";

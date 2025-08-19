@@ -13,6 +13,9 @@ namespace WebApp_AppService
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // Add health checks for SRE monitoring
+            builder.Services.AddHealthChecks();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -24,6 +27,10 @@ namespace WebApp_AppService
 
             app.UseHttpsRedirection();
             app.UseAuthorization();
+            
+            // Map health check endpoint for SRE monitoring
+            app.MapHealthChecks("/health");
+            
             app.MapControllers();
 
             app.Run();
