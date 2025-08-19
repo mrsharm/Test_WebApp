@@ -171,5 +171,72 @@ namespace WebApp_AppService.Controllers
 
             return "success:oomd";
         }
+
+        [HttpGet]
+        [Route("health")]
+        public ActionResult<object> GetHealthStatus()
+        {
+            var healthStatus = new
+            {
+                Status = "Healthy",
+                Timestamp = DateTime.UtcNow,
+                Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production",
+                MachineName = Environment.MachineName,
+                ProcessorCount = Environment.ProcessorCount,
+                WorkingSet = Environment.WorkingSet,
+                Scaling = new
+                {
+                    CurrentInstances = 1, // App Service always reports as 1 for single instance
+                    MinimumInstances = 1, // Free tier minimum
+                    MaximumInstances = 1, // Free tier maximum
+                    Tier = "Free",
+                    CanScaleDown = false,
+                    CanScaleUp = false,
+                    ScalingPolicy = "Manual - Free tier does not support auto-scaling"
+                }
+            };
+            
+            return Ok(healthStatus);
+        }
+
+        [HttpGet]
+        [Route("scaling-status")]
+        public ActionResult<object> GetScalingStatus()
+        {
+            var scalingInfo = new
+            {
+                AppName = "cpu-app",
+                ServicePlan = new
+                {
+                    Name = "cpu-app20250714124552Plan",
+                    Tier = "Free",
+                    Sku = "F1"
+                },
+                CurrentState = new
+                {
+                    InstanceCount = 1,
+                    IsAtMinimum = true,
+                    IsAtMaximum = true
+                },
+                ScalingLimits = new
+                {
+                    MinimumInstances = 1,
+                    MaximumInstances = 1,
+                    ScaleDownPossible = false,
+                    ScaleUpPossible = false,
+                    Reason = "Free tier (F1) does not support scaling. Minimum and maximum instances are both 1."
+                },
+                Recommendations = new[]
+                {
+                    "App is already at minimum instance count for Free tier",
+                    "To enable scaling, upgrade to Basic (B1) or higher tier",
+                    "Scale-down operations will always fail on Free tier"
+                },
+                Timestamp = DateTime.UtcNow,
+                StatusForSRE = "EXPECTED_STATE_NO_ACTION_NEEDED"
+            };
+            
+            return Ok(scalingInfo);
+        }
     }
 }
