@@ -2,7 +2,7 @@
 {
     public class Publisher
     {
-        public event EventHandler SomeEvent;
+        public event EventHandler? SomeEvent;
 
         public void RaiseEvent()
         {
@@ -19,7 +19,7 @@
             publisher.SomeEvent += OnEvent; // Never unsubscribed
         }
 
-        private void OnEvent(object sender, EventArgs e)
+        private void OnEvent(object? sender, EventArgs e)
         {
             Console.WriteLine($"Event received, data size: {_largeData.Length}");
         }
