@@ -141,7 +141,11 @@ namespace WebApp_AppService.Controllers
             var connectionString = app.GetConnectionString("StorageAccount");
             if (string.IsNullOrEmpty(connectionString))
             {
-                throw new InvalidOperationException("Storage account connection string is not configured.");
+                return BadRequest(new { 
+                    error = "Storage account connection string is not configured.", 
+                    details = "Please configure the 'StorageAccount' connection string in app settings or appsettings.json",
+                    configurationKey = "ConnectionStrings:StorageAccount"
+                });
             }
 
             try
@@ -152,7 +156,11 @@ namespace WebApp_AppService.Controllers
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to connect to storage account: {ex.Message}", ex);
+                return StatusCode(500, new { 
+                    error = "Failed to connect to storage account", 
+                    details = ex.Message,
+                    connectionString = connectionString.Length > 20 ? connectionString.Substring(0, 20) + "..." : connectionString
+                });
             }
         }
 
