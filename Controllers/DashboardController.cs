@@ -32,8 +32,7 @@ namespace WebApp_AppService.Controllers
                 }
 
                 // Safely access the first segment
-                // In production, this might target a specific index, but with bounds checking
-                var criticalSegment = segments.Length > 0 ? segments[0] : "Unknown";
+                var criticalSegment = segments[0];
 
                 // Additional validation: Ensure the segment is not empty after trim
                 criticalSegment = criticalSegment.Trim();
@@ -51,9 +50,14 @@ namespace WebApp_AppService.Controllers
 
                 return criticalSegment;
             }
-            catch (Exception)
+            catch (ArgumentException)
             {
-                // Catch any unexpected exceptions during parsing
+                // Handle specific exceptions that could occur during string operations
+                return "Unknown";
+            }
+            catch (IndexOutOfRangeException)
+            {
+                // Handle any unexpected index access issues
                 return "Unknown";
             }
         }
@@ -82,14 +86,14 @@ namespace WebApp_AppService.Controllers
                     Timestamp = DateTime.UtcNow
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Log the exception (in production, use proper logging)
+                // In production, log the exception details server-side
+                // Do not expose internal exception details to clients
                 return StatusCode(500, new
                 {
                     Status = "Error",
-                    Message = "Failed to load admin dashboard",
-                    Error = ex.Message
+                    Message = "Failed to load admin dashboard"
                 });
             }
         }
