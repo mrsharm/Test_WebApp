@@ -52,12 +52,14 @@ namespace WebApp_AppService.Controllers
             }
             catch (ArgumentOutOfRangeException)
             {
-                // Handle substring operations that may exceed bounds
+                // Defensive: Handle substring operations that may exceed bounds
+                // This should not occur with current bounds checking but protects against future code changes
                 return "Unknown";
             }
             catch (ArgumentException)
             {
-                // Handle specific exceptions that could occur during string operations
+                // Defensive: Handle string operations that may fail with invalid arguments
+                // This should not occur with current validation but protects against future code changes
                 return "Unknown";
             }
         }
