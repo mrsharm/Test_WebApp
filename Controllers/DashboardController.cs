@@ -73,17 +73,17 @@ namespace WebApp_AppService.Controllers
                 var platformSegment = userAgent.Substring(startIndex + 1, endIndex - startIndex - 1);
                 
                 // Split platform segment and validate array access
-                var parts = platformSegment.Split(';', StringSplitOptions.TrimEntries);
+                var parts = platformSegment.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
                 
                 // Defensive array access with bounds check
-                if (parts.Length == 0)
+                if (parts.Length == 0 || string.IsNullOrWhiteSpace(parts[0]))
                 {
                     _logger.LogWarning("User-Agent platform segment is empty: {UserAgent}", userAgent);
                     return "Empty";
                 }
 
                 // Safely access first element (primary platform identifier)
-                var criticalPart = parts.Length > 0 ? parts[0] : "Unknown";
+                var criticalPart = parts[0];
                 
                 // Additional validation for browser segment if available
                 if (parts.Length > 2)
