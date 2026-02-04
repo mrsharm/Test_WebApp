@@ -5,7 +5,7 @@ VisualStudioVersion = 17.13.35913.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp_AppService", "WebApp_AppService.csproj", "{BDFF82FF-2E1C-499D-BAA2-AB3D03F3C9CD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp_AppService.Tests", "..\WebApp_AppService.Tests\WebApp_AppService.Tests.csproj", "{8766963B-FAA0-4310-9627-63B167B3CFAC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp_AppService.Tests", "WebApp_AppService.Tests\WebApp_AppService.Tests.csproj", "{8766963B-FAA0-4310-9627-63B167B3CFAC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
