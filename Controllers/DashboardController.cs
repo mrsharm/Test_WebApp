@@ -50,14 +50,14 @@ namespace WebApp_AppService.Controllers
 
                 return criticalSegment;
             }
+            catch (ArgumentOutOfRangeException)
+            {
+                // Handle substring operations that may exceed bounds
+                return "Unknown";
+            }
             catch (ArgumentException)
             {
                 // Handle specific exceptions that could occur during string operations
-                return "Unknown";
-            }
-            catch (IndexOutOfRangeException)
-            {
-                // Handle any unexpected index access issues
                 return "Unknown";
             }
         }
@@ -88,6 +88,8 @@ namespace WebApp_AppService.Controllers
             }
             catch (Exception)
             {
+                // Safety net for any unexpected exceptions during request processing
+                // ExtractCriticalSegment has its own specific exception handling
                 // In production, log the exception details server-side
                 // Do not expose internal exception details to clients
                 return StatusCode(500, new
